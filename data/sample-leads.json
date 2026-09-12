@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Juan Dela Cruz",
+    "email": "juan@example.com",
+    "company": "ABC Marketing",
+    "company_size": 50,
+    "budget": 5000,
+    "service": "AI Automation",
+    "timeline": "Within 30 days",
+    "message": "We want to automate our lead follow-up process."
+  },
+  {
+    "name": "Maria Santos",
+    "email": "maria@example.com",
+    "company": "XYZ Startup",
+    "company_size": 10,
+    "budget": 1000,
+    "service": "AI Chatbot",
+    "timeline": "3-6 months",
+    "message": "We are just exploring automation options."
+  }
+]
