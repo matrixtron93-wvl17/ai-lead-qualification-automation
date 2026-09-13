@@ -1,95 +1,51 @@
-# AI Lead Qualification Automation
+# AI Lead Qualification & CRM Automation
 
-## Project Status
+An end-to-end AI-powered lead qualification and CRM automation workflow built with n8n, PostgreSQL, and an LLM.
 
-✅ Completed
-
-## Overview
-
-An AI-powered lead qualification workflow built with n8n that automatically receives, validates, analyzes, scores, routes, stores, and notifies the team about new leads.
-
-The automation reduces manual lead qualification and ensures leads are consistently categorized based on business-defined criteria.
+The system receives lead information, validates the data, uses AI to qualify the lead, routes the lead based on qualification, stores the lead in PostgreSQL, updates a CRM record, tracks interactions, and sends an automated notification.
 
 ---
 
-## Business Problem
+## Project Overview
 
-Sales teams often spend time manually reviewing incoming leads, determining their quality, entering information into databases, and notifying the appropriate team members.
+This automation is designed for businesses that receive leads through forms, websites, or other systems and need to automatically evaluate and organize those leads.
 
-This automation handles those repetitive steps automatically.
+Instead of manually reviewing every lead, the workflow automatically:
 
----
-
-## Solution
-
-The workflow automatically:
-
-1. Receives lead information through a webhook.
-2. Validates required lead information.
-3. Sends valid leads to an AI model for qualification.
-4. Generates a lead score from 0–100.
-5. Categorizes leads as HOT, WARM, or COLD.
-6. Routes leads based on qualification.
-7. Stores lead information and AI results in PostgreSQL.
-8. Sends an email notification.
-9. Returns clear responses for invalid requests and system errors.
+- Receives lead information
+- Validates incoming data
+- Uses AI to evaluate the lead
+- Assigns a qualification
+- Generates a lead score
+- Provides an AI-generated reason
+- Recommends the next action
+- Routes HOT, WARM, and COLD leads
+- Stores lead data in PostgreSQL
+- Creates or updates a CRM record
+- Tracks total interactions
+- Sends an automated lead notification
 
 ---
 
 ## Workflow Architecture
 
-Lead Form / API Request
-        ↓
+```text
 Receive Lead
-        ↓
+      ↓
 Prepare Lead Data
-        ↓
+      ↓
 Validate Lead
-        ↓
+      ↓
 AI Lead Qualification
-        ↓
+      ↓
 Parse AI Result
-        ↓
+      ↓
 Route by Qualification
-   ┌────┼────┐
-  HOT  WARM  COLD
-   └────┼────┘
-        ↓
+      ↓
 Save Lead to PostgreSQL
-        ↓
+      ↓
+Upsert Lead CRM
+      ↓
 Send Lead Notification
-
-Error Handling:
-- Invalid Lead → Invalid Lead Response
-- AI Failure → AI Error Response
-- Database Failure → Database Error Response
-- Email Failure → Email Error Response
-
----
-
-## AI Qualification
-
-The AI evaluates leads using:
-
-- Budget
-- Company size
-- Service fit
-- Timeline / urgency
-- Intent expressed in the lead message
-
-The AI returns:
-
-- Qualification
-- Score
-- Reason
-- Recommended action
-
-Example:
-
-```json
-{
-  "qualification": "HOT",
-  "score": 90,
-  "reason": "Strong service fit and urgent implementation timeline.",
-  "recommended_action": "Contact the lead promptly and schedule a discovery call."
-}
+      ↓
+Respond to Webhook
