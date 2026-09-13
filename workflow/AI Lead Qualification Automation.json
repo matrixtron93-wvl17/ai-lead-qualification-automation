@@ -1,5 +1,5 @@
 {
-  "name": "AI Lead Qualification Automation",
+  "name": "AI Lead Qualification & CRM Automation",
   "nodes": [
     {
       "parameters": {
@@ -41,7 +41,7 @@
       "typeVersion": 1.5,
       "position": [
         1696,
-        128
+        -64
       ],
       "id": "7be50ebe-25d1-4275-a584-51cc7fbdc615",
       "name": "Respond to Webhook2"
@@ -55,8 +55,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1920,
-        -64
+        2144,
+        128
       ],
       "id": "13c7d851-c1b3-41c2-968f-685ba3db486a",
       "name": "Respond to Webhook3"
@@ -259,7 +259,8 @@
                 ],
                 "combinator": "and"
               },
-              "renameOutput": true
+              "renameOutput": true,
+              "outputKey": "HOT"
             },
             {
               "conditions": {
@@ -283,7 +284,8 @@
                 ],
                 "combinator": "and"
               },
-              "renameOutput": true
+              "renameOutput": true,
+              "outputKey": "WARM"
             },
             {
               "conditions": {
@@ -307,7 +309,8 @@
                 ],
                 "combinator": "and"
               },
-              "renameOutput": true
+              "renameOutput": true,
+              "outputKey": "COLD"
             }
           ]
         },
@@ -509,14 +512,14 @@
         "fromEmail": "matrixtron93@gmail.com",
         "toEmail": "matrixtron93@gmail.com",
         "subject": "=New {{ $json.qualification }} Lead: {{ $json.name }}",
-        "html": "=<h2>New Lead Received</h2>\n\n<p><strong>Name:</strong> {{ $json.name }}</p>\n<p><strong>Email:</strong> {{ $json.email }}</p>\n<p><strong>Company:</strong> {{ $json.company }}</p>\n<p><strong>Company Size:</strong> {{ $json.company_size }}</p>\n<p><strong>Budget:</strong> ${{ $json.budget }}</p>\n<p><strong>Service:</strong> {{ $json.service }}</p>\n<p><strong>Timeline:</strong> {{ $json.timeline }}</p>\n\n<hr>\n\n<p><strong>Qualification:</strong> {{ $json.qualification }}</p>\n<p><strong>Score:</strong> {{ $json.score }}/100</p>\n\n<p><strong>AI Reason:</strong><br>\n{{ $json.reason }}\n</p>\n\n<p><strong>Recommended Action:</strong><br>\n{{ $json.recommended_action }}\n</p>",
+        "html": "=<h2>New Lead Received</h2>\n\n<p><strong>Name:</strong> {{ $json.name }}</p>\n<p><strong>Email:</strong> {{ $json.email }}</p>\n<p><strong>Company:</strong> {{ $json.company }}</p>\n<p><strong>Company Size:</strong> {{ $json.company_size }}</p>\n<p><strong>Budget:</strong> ${{ $json.budget }}</p>\n<p><strong>Service:</strong> {{ $json.service }}</p>\n<p><strong>Timeline:</strong> {{ $json.timeline }}</p>\n\n<hr>\n\n<p><strong>Qualification:</strong> {{ $json.qualification }}</p>\n<p><strong>Score:</strong> {{ $json.score }}/100</p>\n\n<p><strong>AI Reason:</strong><br>\n{{ $('Parse AI Result').item.json.reason }}\n</p>\n\n<p><strong>Recommended Action:</strong><br>\n{{ $('Parse AI Result').item.json.recommended_action }}\n</p>",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1696,
-        -64
+        1920,
+        128
       ],
       "id": "739b2dcf-546c-439b-bb6c-dbd216519eeb",
       "name": "Send Lead Notification",
@@ -528,6 +531,27 @@
         }
       },
       "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO lead_crm (\n    lead_id,\n    name,\n    email,\n    company,\n    qualification,\n    score,\n    lead_status,\n    follow_up_status,\n    last_contacted_at,\n    next_follow_up_at,\n    total_interactions,\n    company_size,\n    budget,\n    service,\n    timeline,\n    updated_at\n)\nVALUES (\n    '{{ $json.id }}',\n    '{{ $json.name }}',\n    '{{ $json.email }}',\n    '{{ $json.company }}',\n    '{{ $json.qualification }}',\n    {{ $json.score }},\n    '{{ $json.qualification === \"HOT\" || $json.qualification === \"WARM\" ? \"Qualified\" : \"Nurturing\" }}',\n    'Pending',\n    NULL,\n    NULL,\n    1,\n    {{ $json.company_size }},\n    {{ $json.budget }},\n    '{{ $json.service }}',\n    '{{ $json.timeline }}',\n    NOW()\n)\nON CONFLICT (email)\nDO UPDATE SET\n    lead_id = EXCLUDED.lead_id,\n    name = EXCLUDED.name,\n    company = EXCLUDED.company,\n    qualification = EXCLUDED.qualification,\n    score = EXCLUDED.score,\n    lead_status = EXCLUDED.lead_status,\n    follow_up_status = EXCLUDED.follow_up_status,\n    company_size = EXCLUDED.company_size,\n    budget = EXCLUDED.budget,\n    service = EXCLUDED.service,\n    timeline = EXCLUDED.timeline,\n    total_interactions = lead_crm.total_interactions + 1,\n    updated_at = NOW()\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1696,
+        128
+      ],
+      "id": "a8dadb34-c459-439c-9b8e-ff92df03b7e1",
+      "name": "Upsert Lead CRM",
+      "credentials": {
+        "postgres": {
+          "id": "PXmLyA1hJRgG0Jwt",
+          "name": "Postgres account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -630,7 +654,7 @@
       "main": [
         [
           {
-            "node": "Send Lead Notification",
+            "node": "Upsert Lead CRM",
             "type": "main",
             "index": 0
           }
@@ -655,6 +679,17 @@
           }
         ]
       ]
+    },
+    "Upsert Lead CRM": {
+      "main": [
+        [
+          {
+            "node": "Send Lead Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -662,7 +697,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "c7b5c0e4-58aa-4264-84b9-7c3c1ffa96b6",
+  "versionId": "a52579d4-c467-494f-86e8-bd99e300f881",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b5c4c433300af6e6085cbda8f2ac6b56a06d6a231860c257d9d66c9227948b19"
